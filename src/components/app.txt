@@ -1,0 +1,532 @@
+import React, { useState, useEffect } from 'react';
+import { Search, Upload } from 'lucide-react';
+import { Header } from './components/Header';
+import { AuthModal } from './components/AuthModal';
+import { UploadForm } from './components/UploadForm';
+import { PreviewModal } from './components/PreviewModal';
+import { UniversityList } from './components/UniversityList';
+import { StreamList } from './components/StreamList';
+import { ClassList } from './components/ClassList';
+import { SubjectList } from './components/SubjectList';
+import { NotesList } from './components/NotesList';
+import { Breadcrumb } from './components/Breadcrumb';
+import Hero from './components/Hero';
+import { ProfilePage } from './components/ProfilePage';
+import { apiService } from './services/api.service';
+import type{ 
+  User, 
+  University, 
+  Note, 
+  AuthFormData, 
+  UploadFormData,
+  AuthMode,
+  ActiveTab,
+  Stream,
+  Class
+} from "./types/index"
+import { generateThumbnail, getFileType, isValidFileType } from './utils/helpers';
+
+
+
+const App: React.FC = () => {
+
+  const [user, setUser] = useState<User | null>(null);
+  const [credits, setCredits] = useState<number>(0);
+  const [notesLibrary, setNotesLibrary] = useState<Note[]>([]);
+  const [previewNote, setPreviewNote] = useState<Note | null>(null);
+  const [downloadAttempts, setDownloadAttempts] = useState<number>(0);
+
+  const [selectedUniversity, setSelectedUniversity] = useState<University | null>(null);
+  const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
+  const [authMode, setAuthMode] = useState<AuthMode>('login');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [universities, setUniversities] = useState<University[]>([]);
+
+  const [uploadedNotes, setUploadedNotes] = useState<Note[]>([]);
+  const [activeTab, setActiveTab] = useState<ActiveTab>('browse');
+  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  
+  const [selectedStream, setSelectedStream] = useState<Stream | null>(null);
+  const [selectedClass, setSelectedClass] = useState<Class | null>(null);
+
+const [showProfile, setShowProfile] = useState<boolean>(false);
+
+  const [authForm, setAuthForm] = useState<AuthFormData>({
+    email: '',
+    password: '',
+    name: '',
+    university: '',
+    newUniversity: ''
+  });
+
+  const [uploadForm, setUploadForm] = useState<UploadFormData>({
+    file: null,
+    fileName: '',
+    university: '',
+    newUniversity: '',
+    stream: '',
+    newStream: '',
+    class: '',
+    newClass: '',
+    subject: '',
+    newSubject: '',
+    description: '',
+    thumbnail: null
+  });
+
+  useEffect(() => {
+    loadUniversities();
+    loadNotes();
+    checkAuthStatus();
+  }, []);
+
+  const checkAuthStatus = async () => {
+    const token = apiService.getToken();
+    if (token) {
+      try {
+        const userData = await apiService.getCurrentUser();
+        setUser(userData);
+        setCredits(userData.credits);
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        apiService.removeToken();
+      }
+    }
+  };
+
+  const loadUniversities = async () => {
+    try {
+      const data = await apiService.getUniversities();
+      setUniversities(data);
+    } catch (error) {
+      console.error('Failed to load universities:', error);
+    }
+  };
+
+  const loadNotes = async () => {
+    try {
+      const data = await apiService.getNotes();
+      setNotesLibrary(data);
+    } catch (error) {
+      console.error('Failed to load notes:', error);
+    }
+  };
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && isValidFileType(file)) {
+      const fileType = getFileType(file);
+      const thumbnail = generateThumbnail(file.name, fileType);
+      
+      setUploadForm({
+        ...uploadForm,
+        file,
+        fileName: file.name.replace(/\.(pdf|ppt|pptx)$/i, ''),
+        thumbnail
+      });
+    } else {
+      alert('Please upload a PDF or PowerPoint file');
+    }
+  };
+
+  const handleAuth = async () => {
+    setLoading(true);
+    try {
+      if (authMode === 'login') {
+        if (!authForm.email || !authForm.password) {
+          alert('Please fill in all fields');
+          return;
+        }
+        
+        const response = await apiService.login({
+          email: authForm.email,
+          password: authForm.password
+        });
+        
+        setUser(response.user);
+        setCredits(response.user.credits);
+        setShowAuthModal(false);
+        alert('✅ Welcome back!');
+      } else {
+        if (!authForm.name || !authForm.email || !authForm.password) {
+          alert('Please fill in all fields');
+          return;
+        }
+
+        const universityName = authForm.university === 'other' 
+          ? authForm.newUniversity 
+          : authForm.university;
+        
+        if (!universityName) {
+          alert('Please select or enter your university');
+          return;
+        }
+
+        const response = await apiService.register({
+          name: authForm.name,
+          email: authForm.email,
+          password: authForm.password,
+          university: universityName
+        });
+
+        setUser(response.user);
+        setCredits(response.user.credits);
+        setShowAuthModal(false);
+        alert('✅ Account created! You received 5 free credits!');
+      }
+      
+      setAuthForm({ email: '', password: '', name: '', university: '', newUniversity: '' });
+      loadUniversities();
+    } catch (error: any) {
+      console.error('Auth error:', error);
+      alert(error.response?.data?.error || 'Authentication failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    apiService.logout();
+    setUser(null);
+    setCredits(0);
+    setDownloadAttempts(0);
+    setActiveTab('browse');
+    resetNavigation();
+  };
+
+  const resetNavigation = () => {
+    setSelectedUniversity(null);
+    setSelectedStream(null);
+    setSelectedClass(null);
+    setSelectedSubject(null);
+  };
+
+  const handleNavigate = (level: 'home' | 'university' | 'stream' | 'class') => {
+    switch (level) {
+      case 'home':
+        resetNavigation();
+        break;
+      case 'university':
+        setSelectedStream(null);
+        setSelectedClass(null);
+        setSelectedSubject(null);
+        break;
+      case 'stream':
+        setSelectedClass(null);
+        setSelectedSubject(null);
+        break;
+      case 'class':
+        setSelectedSubject(null);
+        break;
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+
+    const universityName = uploadForm.university === 'other' 
+      ? uploadForm.newUniversity 
+      : uploadForm.university;
+    const streamName = uploadForm.stream === 'other' 
+      ? uploadForm.newStream 
+      : uploadForm.stream;
+    const className = uploadForm.class === 'other' 
+      ? uploadForm.newClass 
+      : uploadForm.class;
+    const subjectName = uploadForm.subject === 'other' 
+      ? uploadForm.newSubject 
+      : uploadForm.subject;
+
+    if (!uploadForm.file || !universityName || !streamName || !className || !subjectName || !uploadForm.fileName) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', uploadForm.file);
+      formData.append('title', uploadForm.fileName);
+      formData.append('university', universityName);
+      formData.append('stream', streamName);
+      formData.append('class', className);
+      formData.append('subject', subjectName);
+      formData.append('description', uploadForm.description);
+
+      const response = await apiService.uploadNote(formData);
+      
+      setCredits(response.credits);
+      setUploadForm({
+        file: null,
+        fileName: '',
+        university: '',
+        newUniversity: '',
+        stream: '',
+        newStream: '',
+        class: '',
+        newClass: '',
+        subject: '',
+        newSubject: '',
+        description: '',
+        thumbnail: null
+      });
+      
+      alert('✅ Notes uploaded successfully! You earned 1 credit.');
+      setActiveTab('browse');
+      loadNotes();
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      alert(error.response?.data?.error || 'Upload failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDownload = async (note: Note) => {
+    if (downloadAttempts >= 1 && !user) {
+      alert('🔒 Please login to continue downloading notes!');
+      setShowAuthModal(true);
+      return;
+    }
+
+    if (user) {
+      setLoading(true);
+      try {
+        const response = await apiService.downloadNote(note._id || note.id.toString());
+        setCredits(response.credits);
+        
+        if (response.downloadUrl) {
+          window.open(response.downloadUrl, '_blank');
+        }
+        
+        setSelectedNote(note);
+        alert(`✅ Downloaded: ${note.title}\nRemaining credits: ${response.credits}`);
+      } catch (error: any) {
+        console.error('Download error:', error);
+        alert(error.response?.data?.error || 'Download failed');
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      setDownloadAttempts(downloadAttempts + 1);
+      setSelectedNote(note);
+      alert(`✅ Downloaded: ${note.title}\n⚠️ Next download requires login!`);
+    }
+  };
+
+  const getFilteredNotes = (): Note[] => {
+    let filtered = [...notesLibrary, ...uploadedNotes];
+
+    if (selectedUniversity) {
+      filtered = filtered.filter(note => note.university === selectedUniversity.name);
+    }
+    if (selectedStream) {
+      filtered = filtered.filter(note => note.stream === selectedStream.name);
+    }
+    if (selectedClass) {
+      filtered = filtered.filter(note => note.class === selectedClass.name);
+    }
+    if (selectedSubject) {
+      filtered = filtered.filter(note => note.subject === selectedSubject);
+    }
+    if (searchTerm) {
+      filtered = filtered.filter(note => 
+        note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        note.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        note.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    return filtered;
+  };
+
+  const getCurrentStream = (): Stream | null => {
+    if (selectedUniversity) {
+      return selectedUniversity.streams.find(s => s.name === selectedStream?.name) || null;
+    }
+    return null;
+  };
+
+  const getCurrentClass = (): Class | null => {
+    const stream = getCurrentStream();
+    if (stream) {
+      return stream.classes.find(c => c.name === selectedClass?.name) || null;
+    }
+    return null;
+  };
+
+  return (
+    <div className="min-h-96 bg-gradient-to-br from-blue-50 to-indigo-100">
+      <Header 
+  user={user}
+  credits={credits}
+  onLoginClick={() => setShowAuthModal(true)}
+  onLogout={handleLogout}
+  onProfileClick={() => setShowProfile(true)} // Add this prop
+/>
+
+<Hero/>
+
+      {!user && downloadAttempts === 0 && (
+        <div className="max-w-7xl mx-auto px-4 mt-6">
+          <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg p-6 shadow-lg">
+            <h2 className="text-2xl font-bold mb-2">🎉 Welcome to NotesShare!</h2>
+            <p className="text-lg">
+              Try downloading your first note for FREE! Sign up to get <strong>5 FREE CREDITS</strong> and continue accessing unlimited notes.
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className="max-w-7xl mx-auto px-4 mt-6">
+        <div className="bg-white rounded-lg shadow-md p-1 flex gap-2">
+          <button
+            onClick={() => {
+              setActiveTab('browse');
+              resetNavigation();
+            }}
+            className={`flex-1 py-3 px-4 rounded-md font-medium transition-colors ${
+              activeTab === 'browse'
+                ? 'bg-indigo-600 text-white'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <Search className="w-5 h-5 inline mr-2" />
+            Browse Notes
+          </button>
+          <button
+            onClick={() => {
+              if (!user) {
+                setShowAuthModal(true);
+              } else {
+                setActiveTab('upload');
+              }
+            }}
+            className={`flex-1 py-3 px-4 rounded-md font-medium transition-colors ${
+              activeTab === 'upload'
+                ? 'bg-indigo-600 text-white'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <Upload className="w-5 h-5 inline mr-2" />
+            Upload Notes
+          </button>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {activeTab === 'browse' && (
+          <div>
+            <Breadcrumb
+              university={selectedUniversity}
+              stream={selectedStream}
+              classItem={selectedClass}
+              subject={selectedSubject}
+              onNavigate={handleNavigate}
+            />
+
+            {(selectedSubject || searchTerm) && (
+              <div className="mb-6">
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search notes..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none"
+                  />
+                </div>
+              </div>
+            )}
+
+            {!selectedUniversity && (
+              <UniversityList
+                universities={universities}
+                onSelect={setSelectedUniversity}
+              />
+            )}
+
+            {selectedUniversity && !selectedStream && (
+              <StreamList
+                streams={selectedUniversity.streams}
+                onSelect={setSelectedStream}
+              />
+            )}
+
+            {selectedStream && !selectedClass && getCurrentStream() && (
+              <ClassList
+                classes={getCurrentStream()!.classes}
+                onSelect={setSelectedClass}
+              />
+            )}
+
+            {selectedClass && !selectedSubject && getCurrentClass() && (
+              <SubjectList
+                subjects={getCurrentClass()!.subjects}
+                onSelect={setSelectedSubject}
+              />
+            )}
+
+            {selectedSubject && (
+              <NotesList
+                notes={getFilteredNotes()}
+                subject={selectedSubject}
+                showFreeDownload={downloadAttempts === 0 && !user}
+                onPreview={setPreviewNote}
+                onDownload={handleDownload}
+              />
+            )}
+          </div>
+        )}
+
+        {activeTab === 'upload' && user && (
+          <UploadForm
+            formData={uploadForm}
+            universities={universities}
+            loading={loading}
+            onFormChange={(data) => setUploadForm({ ...uploadForm, ...data })}
+            onFileChange={handleFileChange}
+            onSubmit={handleUpload}
+          />
+        )}
+      </div>
+
+      <AuthModal
+        show={showAuthModal}
+        mode={authMode}
+        formData={authForm}
+        universities={universities}
+        loading={loading}
+        onClose={() => setShowAuthModal(false)}
+        onSubmit={handleAuth}
+        onModeToggle={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
+        onFormChange={(data) => setAuthForm({ ...authForm, ...data })}
+      />
+
+      <PreviewModal
+        note={previewNote}
+        showFreeDownload={downloadAttempts === 0 && !user}
+        hasUser={!!user}
+        credits={credits}
+        onClose={() => setPreviewNote(null)}
+        onDownload={handleDownload}
+      />
+
+      {showProfile && (
+  <ProfilePage
+    onClose={() => setShowProfile(false)}
+    onPreview={setPreviewNote}
+    onDownload={handleDownload}
+    showFreeDownload={downloadAttempts === 0 && !user}
+  />
+)}
+    </div>
+  );
+};
+
+export default App;
