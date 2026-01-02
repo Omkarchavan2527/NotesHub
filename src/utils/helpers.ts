@@ -1,4 +1,5 @@
 // src/utils/helpers.ts
+import type { Timeout } from 'node:timers';
 
 // ==================== FILE UTILITIES ====================
 
@@ -6,7 +7,7 @@
  * Generate a thumbnail SVG for uploaded files
  * @param fileName - Name of the file
  * @param fileType - Type of file (pdf or ppt)
- * @returns Data URL string for SVG thumbnail
+  let timeout: Timeout;
  */
 export const generateThumbnail = (fileName: string, fileType: 'pdf' | 'ppt'): string => {
   const color = fileType === 'pdf' ? '%234F46E5' : '%23F59E0B';
