@@ -126,7 +126,7 @@ export const FeaturedUniversities: React.FC = () => {
           >
             <div className="flex items-center gap-4">
               {/* Icon */}
-              <div className={`${university.color} text-white w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}>
+              <div className={`${university.color} text-white w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform`}>
                 <School className="w-6 h-6 sm:w-8 sm:h-8" />
               </div>
 
@@ -162,7 +162,7 @@ export const FeaturedUniversities: React.FC = () => {
               </div>
 
               {/* Arrow */}
-              <ChevronRight className="w-5 h-5 text-gray-400 group-hover:translate-x-1 transition-transform flex-shrink-0" />
+              <ChevronRight className="w-5 h-5 text-gray-400 group-hover:translate-x-1 transition-transform shrink-0" />
             </div>
           </button>
         ))}

@@ -125,7 +125,7 @@ export const UniversityDetails: React.FC<UniversityDetailsProps> = () => {
         {/* University Header */}
         <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-6">
           <div className="flex items-start gap-4 mb-6">
-            <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center flex-shrink-0">
+            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shrink-0">
               <School className="w-8 h-8 text-white" />
             </div>
             <div className="flex-1">
@@ -194,7 +194,7 @@ export const UniversityDetails: React.FC<UniversityDetailsProps> = () => {
                 <button
                   key={subjectGroup.subject}
                   onClick={() => handleSubjectClick(subjectGroup.subject)}
-                  className="bg-gradient-to-br from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 rounded-xl p-6 text-left transition-all duration-300 hover:shadow-lg hover:-translate-y-1 group"
+                  className=" bg-white hover:from-indigo-100 hover:to-purple-100 rounded-xl p-6 text-left transition-all duration-300 hover:shadow-lg hover:-translate-y-1 group"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <BookOpen className="w-8 h-8 text-indigo-600 group-hover:scale-110 transition-transform" />

@@ -1,6 +1,6 @@
 // src/components/UploadForm.tsx
 import React from 'react';
-import { FileText, Presentation, User } from 'lucide-react';
+import { FileText, Presentation,  } from 'lucide-react';
 import type{ UploadFormData, University } from '../types';
 import type{ User as UserType } from '../types';
 

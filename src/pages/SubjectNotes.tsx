@@ -97,7 +97,7 @@ export const SubjectNotes: React.FC<{
         {/* Subject Header */}
         <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-6">
           <div className="flex items-start gap-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center flex-shrink-0">
+            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shrink-0">
               <BookOpen className="w-8 h-8 text-white" />
             </div>
             <div className="flex-1">

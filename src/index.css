@@ -58,14 +58,16 @@ code {
 @layer utilities {
   .line-clamp-2 {
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+      -webkit-line-clamp: 2; /* Correct usage with value */
+      line-clamp: 2; /* Standard property for compatibility */
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
 
   .line-clamp-3 {
     display: -webkit-box;
-    -webkit-line-clamp: 3;
+      -webkit-line-clamp: 3; /* Correct usage with value */
+      line-clamp: 3; /* Standard property for compatibility */
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
@@ -394,29 +396,35 @@ img {
 
 /* react-select Tailwind-friendly styling */
 .react-select__control {
-  @apply border border-gray-300 rounded-lg min-h-[42px] shadow-none;
+  border: 1px solid #d1d5db; /* border-gray-300 */
+  border-radius: 0.5rem;      /* rounded-lg */
+  min-height: 42px;           /* min-h-[42px] */
+  box-shadow: none;           /* shadow-none */
 }
 
 .react-select__control--is-focused {
-  @apply border-indigo-500 ring-1 ring-indigo-500;
+  border-color: #6366f1;      /* border-indigo-500 */
+  box-shadow: 0 0 0 1px #6366f1; /* ring-1 ring-indigo-500 */
 }
 
 .react-select__placeholder {
-  @apply text-gray-400;
+  color: #9ca3af;             /* text-gray-400 */
 }
 
 .react-select__menu {
-  @apply rounded-lg shadow-lg;
+  border-radius: 0.5rem;      /* rounded-lg */
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1); /* shadow-lg */
 }
 
 .react-select__option {
-  @apply cursor-pointer;
+  cursor: pointer;            /* cursor-pointer */
 }
 
 .react-select__option--is-focused {
-  @apply bg-indigo-50;
+  background-color: #eef2ff;  /* bg-indigo-50 */
 }
 
 .react-select__option--is-selected {
-  @apply bg-indigo-600 text-white;
+  background-color: #4f46e5;  /* bg-indigo-600 */
+  color: #fff;                /* text-white */
 }

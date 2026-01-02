@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Upload } from 'lucide-react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 
 
@@ -7,8 +6,6 @@ import { Header } from './components/Header';
 import { AuthModal } from './components/AuthModal';
 import { UploadForm } from './components/UploadForm';
 import { PreviewModal } from './components/PreviewModal';
-import { NotesList } from './components/NotesList';
-import { Breadcrumb } from './components/Breadcrumb';
 import Hero from './components/Hero';
 import { ProfilePage } from './components/ProfilePage';
 import { apiService } from './services/api.service';
@@ -25,10 +22,7 @@ import type {
   Note,
   AuthFormData,
   UploadFormData,
-  AuthMode,
-  ActiveTab,
-  Stream,
-  Class
+  AuthMode
 } from './types';
 import { generateThumbnail, getFileType, isValidFileType } from './utils/helpers';
 
@@ -38,12 +32,10 @@ const App: React.FC = () => {
 
   const [user, setUser] = useState<User | null>(null);
   const [credits, setCredits] = useState<number>(0);
-  const [notesLibrary, setNotesLibrary] = useState<Note[]>([]);
   const [previewNote, setPreviewNote] = useState<Note | null>(null);
   const [downloadAttempts, setDownloadAttempts] = useState<number>(0);
 
-  const [selectedUniversity, setSelectedUniversity] = useState<string | null>(null);
-  const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
+  // ...existing code...
 
   const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
   const [authMode, setAuthMode] = useState<AuthMode>('login');
@@ -51,13 +43,7 @@ const App: React.FC = () => {
 const [universities, setUniversities] = useState<University[]>([]);
 
 
-  const [uploadedNotes, setUploadedNotes] = useState<Note[]>([]);
-  const [activeTab, setActiveTab] = useState<ActiveTab>('browse');
-  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  
-  const [selectedStream, setSelectedStream] = useState<Stream | null>(null);
-  const [selectedClass, setSelectedClass] = useState<Class | null>(null);
+  // ...existing code...
 
 const [authForm, setAuthForm] = useState<AuthFormData>({
     email: '',
@@ -108,14 +94,14 @@ const loadUniversities = async () => {
       console.error('Failed to load universities:', error);
     }
   };
-  const loadNotes = async () => {
-try {
-      const data = await apiService.getNotes();
-      setNotesLibrary(data);
-    } catch (error) {
-      console.error('Failed to load notes:', error);
-    }
-  };  
+const loadNotes = async () => {
+  try {
+    await apiService.getNotes();
+    // If you need to use the notes, assign them to another state or handle as needed
+  } catch (error) {
+    console.error('Failed to load notes:', error);
+  }
+};  
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && isValidFileType(file)) {
@@ -212,7 +198,6 @@ const handleUpload = async () => {
       });
       
       alert('✅ Notes uploaded successfully! You earned 1 credit.');
-      setActiveTab('browse');
       loadNotes();
     } catch (error: any) {
       console.error('Upload error:', error);
@@ -237,7 +222,7 @@ if (user) {
           window.open(response.downloadUrl, '_blank');
         }
         
-        setSelectedNote(note);
+        // setSelectedNote(note); // Removed unused setter
         alert(`✅ Downloaded: ${note.title}\nRemaining credits: ${response.credits}`);
       } catch (error: any) {
         console.error('Download error:', error);
@@ -247,54 +232,14 @@ if (user) {
       }
     } else {
       setDownloadAttempts(downloadAttempts + 1);
-      setSelectedNote(note);
+      // setSelectedNote(note); // Removed unused setter
       alert(`✅ Downloaded: ${note.title}\n⚠️ Next download requires login!`);
     }
   };
 
-  const getFilteredNotes = (): Note[] => {
-    let filtered = [...notesLibrary, ...uploadedNotes];
 
-    if (selectedUniversity) {
-      filtered = filtered.filter(note => note.university === selectedUniversity);
-    }
-    if (selectedStream) {
-      filtered = filtered.filter(note => note.stream === selectedStream.name);
-    }
-    if (selectedClass) {
-      filtered = filtered.filter(note => note.class === selectedClass.name);
-    }
-    if (selectedSubject) {
-      filtered = filtered.filter(note => note.subject === selectedSubject);
-    }
-    if (searchTerm) {
-      filtered = filtered.filter(note => 
-        note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        note.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        note.description.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
+  // ...existing code...
 
-    return filtered;
-  };
-
-  const getCurrentStream = (): Stream | null => {
-    if (selectedUniversity && selectedStream) {
-      const universityObj = universities.find(u => u.name === selectedUniversity);
-      if (universityObj && universityObj.streams) {
-        return universityObj.streams.find(s => s.name === selectedStream.name) || null;
-      }
-    }
-    return null;
-  };
-
-  const getCurrentClass = (): Class | null => {
-    const stream = getCurrentStream();
-    if (stream) {
-      return stream.classes.find(c => c.name === selectedClass?.name) || null;
-    }
-    return null;
-  };
 
   return (
     <>
@@ -329,9 +274,7 @@ if (user) {
                 />
 
                 {/* ✅ NEW */}
-                <ExploreSubjects
-                  onSelectSubject={(subject) => setSelectedSubject(subject)}
-                />
+                <ExploreSubjects onSelectSubject={() => {}} />
 
                 {/* ✅ NEW */}
                 <FeaturedNotes

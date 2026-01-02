@@ -10,8 +10,7 @@ import {
   Download,
   Star,
   Users,
-  Award,
-  TrendingUp
+ 
 } from 'lucide-react';
 import { NoteCard } from './NoteCard';
 import type { Note } from '../types';
@@ -111,7 +110,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
     );
   }
 
-  const { user, stats, achievements, uploadedNotes, savedNotes } = profileData;
+  const { user, stats,  uploadedNotes, savedNotes } = profileData;
   const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase();
 
   const achievementsList = [
@@ -213,7 +212,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
         <div className="bg-white rounded-lg shadow-md p-8 mb-6">
           <div className="flex flex-col items-center text-center mb-6">
             {/* Avatar */}
-            <div className="w-24 h-24 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white text-3xl font-bold mb-4">
+            <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center text-white text-3xl font-bold mb-4">
               {initials}
             </div>
 
@@ -313,7 +312,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                 <div
                   key={achievement.id}
                   className={`rounded-lg p-4 text-center transition-all ${unlocked
-                      ? 'bg-gradient-to-br from-yellow-50 to-yellow-100 border-2 border-yellow-300'
+                      ? 'bg-linear-to-br from-yellow-50 to-yellow-100 border-2 border-yellow-300'
                       : 'bg-gray-100 opacity-50'
                     }`}
                 >
@@ -331,7 +330,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
             onClick={() => setActiveTab('uploads')}
             className={`flex-1 py-3 px-4 rounded-md font-medium transition-colors ${activeTab === 'uploads'
                 ? 'bg-gray-900 text-white'
-                : 'text-gray-600 hover:bg-gray-100 border-[#efefef] border-1'
+                : 'text-gray-600 hover:bg-gray-100 border-[#efefef] border'
               }`}
           >
             My Uploads
@@ -340,7 +339,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
             onClick={() => setActiveTab('saved')}
             className={`flex-1 py-3 px-4 rounded-md font-medium transition-colors ${activeTab === 'saved'
                 ? 'bg-gray-900 text-white'
-                : 'text-gray-600 hover:bg-gray-100 border-[#efefef] border-1'
+                : 'text-gray-600 hover:bg-gray-100 border-[#efefef] border'
               }`}
           >
             Saved Notes

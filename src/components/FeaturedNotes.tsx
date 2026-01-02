@@ -131,7 +131,7 @@ export const FeaturedNotes: React.FC<FeaturedNotesProps> = ({
               className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group hover:-translate-y-1"
             >
               {/* Thumbnail */}
-              <div className="relative h-40 sm:h-48 bg-gradient-to-br from-indigo-100 to-purple-100 overflow-hidden">
+              <div className="relative h-40 sm:h-48 bg-white overflow-hidden">
                 <img
                   src={note.thumbnail}
                   alt={note.title}
