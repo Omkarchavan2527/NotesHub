@@ -180,9 +180,11 @@ async getUserProfile(): Promise<any> {
   return data;
 }
 
-async updateUserProfile(profileData: {
+async updateProfile(profileData: {
   name?: string;
   university?: string;
+  class?: string;
+  stream?: string;
   location?: string;
   bio?: string;
 }): Promise<any> {

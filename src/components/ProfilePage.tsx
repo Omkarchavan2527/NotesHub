@@ -36,6 +36,8 @@ interface ProfileData {
     name: string;
     email: string;
     university: string;
+    class?: string;
+    stream?: string;
     credits: number;
     location?: string;
     bio?: string;
@@ -69,7 +71,9 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   const [editForm, setEditForm] = useState({
     name: '',
     university: '',
-    class: ''
+    class: '',
+    stream: '',
+    bio: ''
   });
 
   useEffect(() => {
@@ -85,7 +89,9 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
       setEditForm({
         name: data.user.name,
         university: data.user.university,
-        class: ''
+        class: data.user.class || '',
+        stream: data.user.stream || '',
+        bio: data.user.bio || ''
       });
     } catch (error) {
       console.error('Failed to load profile:', error);
@@ -123,57 +129,101 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   ];
 
   // --- Edit Modal JSX ---
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      // Pass the updated data to the update route
+      await apiService.updateProfile(editForm);
+      await loadProfileData();
+      setShowEdit(false);
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+    }
+  };
+
   const editModal = showEdit && (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-8 w-full max-w-md shadow-lg">
-        <h2 className="text-xl font-bold mb-4">Edit Profile</h2>
-        <form
-          onSubmit={e => {
-            e.preventDefault();
-            // TODO: Save logic here (API call)
-            setShowEdit(false);
-          }}
-          className="space-y-4"
-        >
-          <div>
-            <label className="block text-gray-700 mb-1">Name</label>
-            <input
-              className="w-full border rounded px-3 py-2"
-              value={editForm.name}
-              onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))}
-              required
-            />
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all">
+        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+          <h2 className="text-xl font-bold text-gray-800">Edit Profile</h2>
+          <button 
+            onClick={() => setShowEdit(false)}
+            className="text-gray-400 hover:text-gray-600 transition-colors rounded-full p-1 hover:bg-gray-200"
+          >
+            <span className="text-xl">×</span>
+          </button>
+        </div>
+        
+        <form onSubmit={handleUpdate} className="p-6 space-y-5">
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+              <input
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all"
+                value={editForm.name}
+                onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))}
+                required
+                placeholder="Your Name"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">University</label>
+              <input
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all"
+                value={editForm.university}
+                onChange={e => setEditForm(f => ({ ...f, university: e.target.value }))}
+                required
+                placeholder="University Name"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Class</label>
+                <input
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all"
+                  value={editForm.class}
+                  onChange={e => setEditForm(f => ({ ...f, class: e.target.value }))}
+                  placeholder="e.g. second Year"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Stream</label>
+                <input
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all"
+                  value={editForm.stream}
+                  onChange={e => setEditForm(f => ({ ...f, stream: e.target.value }))}
+                  placeholder="e.g. Engineering"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Bio</label>
+              <textarea
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all resize-none"
+                value={editForm.bio}
+                onChange={e => setEditForm(f => ({ ...f, bio: e.target.value }))}
+                placeholder="Tell us about yourself..."
+                rows={3}
+              />
+            </div>
           </div>
-          <div>
-            <label className="block text-gray-700 mb-1">University</label>
-            <input
-              className="w-full border rounded px-3 py-2"
-              value={editForm.university}
-              onChange={e => setEditForm(f => ({ ...f, university: e.target.value }))}
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-gray-700 mb-1">Class</label>
-            <input
-              className="w-full border rounded px-3 py-2"
-              value={editForm.class}
-              onChange={e => setEditForm(f => ({ ...f, class: e.target.value }))}
-            />
-          </div>
-          <div className="flex gap-2 justify-end">
+
+          <div className="flex gap-3 justify-end pt-2">
             <button
               type="button"
-              className="px-4 py-2 rounded bg-gray-200"
+              className="px-5 py-2.5 rounded-lg text-gray-700 font-medium hover:bg-gray-100 transition-colors"
               onClick={() => setShowEdit(false)}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded bg-indigo-600 text-white"
+              className="px-5 py-2.5 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all"
             >
-              Save
+              Save Changes
             </button>
           </div>
         </form>
@@ -242,6 +292,12 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
               <MapPin className="w-4 h-4" />
               <span>{user.location || user.university}</span>
             </div>
+            {(user.class || user.stream) && (
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-4 h-4" />
+                <span>{[user.class, user.stream].filter(Boolean).join(' • ')}</span>
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
               <span>Joined {new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
